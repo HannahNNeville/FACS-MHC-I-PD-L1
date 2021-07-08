@@ -1,0 +1,512 @@
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Median Fluorescence Intensity B_530/30 (MHC-I)")+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+###PDL1 stuff
+cyto_gate_edit(gs, parent = "Live cells",
+alias = c("PD-L1+", "PD-L1-"),
+channels = c("YG_586/15-A"),
+overlay = c(PDL1FMO),
+density_fill_alpha=0.5,
+type = c("interval", "interval"))
+PDL1freqs<-cyto_stats_compute(gs, channels = c("YG_586/15-A"),
+stat = c("freq", "median"),
+alias = "PD-L1+", parent = "Live cells")
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, PDL1freqs[!PDL1freqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+PDL1freqs$Transfection<-as.factor(PDL1freqs$Transfection)
+levels<-levels(PDL1freqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+PDL1freqs$Transfection<-fct_relevel(PDL1freqs$Transfection, relevel)
+PDL1freqs$Transfection
+PDL1freqs$Treatment<-as.factor(PDL1freqs$Treatment)
+levels<-levels(PDL1freqs$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+PDL1freqs$Treatment<-fct_relevel(PDL1freqs$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/PDL1cellfreqs.png")
+ggplot(PDL1freqs[!PDL1freqs$Transfection == "NA",], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency PDL1+ cells")+
+#scale_y_continuous(limits =c(0,100))+
+stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+PDL1median<-cyto_stats_compute(gs, channels = c("YG_586/15-A"), alias = "Live cells",
+stat = c("median"))
+PDL1median
+##stats test- does the treatment or Transfection transfected affect median fluoresence intensity
+aov<-aov(MedFI ~ Transfection*Treatment, PDL1median[!PDL1median$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+PDL1median$Transfection<-as.factor(PDL1median$Transfection)
+levels<-levels(PDL1median$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+PDL1median$Transfection<-fct_relevel(PDL1median$Transfection, relevel)
+PDL1median$Transfection
+PDL1median$Treatment<-as.factor(PDL1median$Treatment)
+levels<-levels(PDL1median$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+PDL1median$Treatment<-fct_relevel(PDL1median$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/PDL1ImedFI.png")
+ggplot(PDL1median[!PDL1median$Transfection == "NA",], aes(Transfection, colour = Treatment, log(MedFI))) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Median Fluorescence Intensity YG_586/15 (PD-L1, log scale)")+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+Transfections
+levels
+Transfections
+Livecellfreqs<-cyto_stats_compute(gs, channels = c("R_780/60-A"),
+stat = c("freq"),
+alias = "Live cells", parent = "Single Cells")
+library(tidyverse)
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, Livecellfreqs[!Livecellfreqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+Livecellfreqs$Transfection<-as.factor(Livecellfreqs$Transfection)
+levels<-levels(Livecellfreqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+Livecellfreqs$Transfection<-fct_relevel(Livecellfreqs$Transfection, relevel)
+Livecellfreqs$Transfection
+Livecellfreqs$Treatment<-as.factor(Livecellfreqs$Treatment)
+levels<-levels(Livecellfreqs$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+Livecellfreqs$Treatment<-fct_relevel(Livecellfreqs$Treatment, relevel)
+Transfections<-levels(as.factor(cyto_details(gs)$Transfection))
+Transfections
+my_comparisons<-list(c(Transfections[5], Transfections[1]),
+c(Transfections[5], Transfections[3]),c(Transfections[5], Transfections[4]),
+c(Transfections[5], Transfections[6]))
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/Livecellfreqs.png")
+ggplot(Livecellfreqs[!Livecellfreqs$Transfection == "NA",], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency Live cells")+
+scale_y_continuous(limits =c(0,100))+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+##extract more FMOS
+Unst<-cyto_extract(gs, parent = "Single Cells")[28]
+PDL1FMO<-cyto_extract(gs, parent = "Single Cells")[27]
+MHCFMO<-cyto_extract(gs, parent = "Single Cells")[26]
+##list the names of the samples
+##plot gate for MHC positive cells
+cyto_gate_edit(gs, parent = "Live cells",
+alias = c("MHC+", "MHC-"),
+channels = c("B_530/30-A"),
+overlay = c(MHCFMO),
+density_fill_alpha=0.5,
+type = c("interval", "interval"))
+MHCfreqs<-cyto_stats_compute(gs, channels = c("B_530/30-A"),
+stat = c("freq", "median"),
+alias = "MHC+", parent = "Live cells")
+library(tidyverse)
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, MHCfreqs[!MHCfreqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+MHCfreqs$Transfection<-as.factor(MHCfreqs$Transfection)
+levels<-levels(MHCfreqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+MHCfreqs$Transfection<-fct_relevel(MHCfreqs$Transfection, relevel)
+MHCfreqs$Transfection
+MHCfreqs$Treatment<-as.factor(MHCfreqs$Treatment)
+levels<-levels(MHCfreqs$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+MHCfreqs$Treatment<-fct_relevel(MHCfreqs$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/MHCcellfreqs.png")
+ggplot(MHCfreqs[!MHCfreqs$Transfection == "NA",], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency MHC+ cells")+
+scale_y_continuous(limits =c(0,100))+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+MHCmedian<-cyto_stats_compute(gs, channels = c("B_530/30-A"), alias = "Live cells",
+stat = c("median"), parent = "Live cells")
+##stats test- does the treatment or Transfection transfected affect median fluoresence intensity
+aov<-aov(MedFI ~ Transfection*Treatment, MHCmedian[!MHCmedian$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+MHCmedian$Transfection<-as.factor(MHCmedian$Transfection)
+levels<-levels(MHCmedian$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+MHCmedian$Transfection<-fct_relevel(MHCmedian$Transfection, relevel)
+MHCmedian$Transfection
+MHCmedian$Treatment<-as.factor(MHCmedian$Treatment)
+levels<-levels(MHCmedian$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+MHCmedian$Treatment<-fct_relevel(MHCmedian$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/MHCImedFI.png")
+ggplot(MHCmedian[!MHCmedian$Transfection == "NA",], aes(Transfection, colour = Treatment, MedFI)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Median Fluorescence Intensity B_530/30 (MHC-I)")+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+###PDL1 stuff
+cyto_gate_edit(gs, parent = "Live cells",
+alias = c("PD-L1+", "PD-L1-"),
+channels = c("YG_586/15-A"),
+overlay = c(PDL1FMO),
+density_fill_alpha=0.5,
+type = c("interval", "interval"))
+PDL1freqs<-cyto_stats_compute(gs, channels = c("YG_586/15-A"),
+stat = c("freq", "median"),
+alias = "PD-L1+", parent = "Live cells")
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, PDL1freqs[!PDL1freqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+PDL1freqs$Transfection<-as.factor(PDL1freqs$Transfection)
+levels<-levels(PDL1freqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+PDL1freqs$Transfection<-fct_relevel(PDL1freqs$Transfection, relevel)
+PDL1freqs$Transfection
+PDL1freqs$Treatment<-as.factor(PDL1freqs$Treatment)
+levels<-levels(PDL1freqs$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+PDL1freqs$Treatment<-fct_relevel(PDL1freqs$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/PDL1cellfreqs.png")
+ggplot(PDL1freqs[!PDL1freqs$Transfection == "NA",], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency PDL1+ cells")+
+#scale_y_continuous(limits =c(0,100))+
+stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+PDL1median<-cyto_stats_compute(gs, channels = c("YG_586/15-A"), alias = "Live cells",
+stat = c("median"))
+PDL1median
+##stats test- does the treatment or Transfection transfected affect median fluoresence intensity
+aov<-aov(MedFI ~ Transfection*Treatment, PDL1median[!PDL1median$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+PDL1median$Transfection<-as.factor(PDL1median$Transfection)
+levels<-levels(PDL1median$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+PDL1median$Transfection<-fct_relevel(PDL1median$Transfection, relevel)
+PDL1median$Transfection
+PDL1median$Treatment<-as.factor(PDL1median$Treatment)
+levels<-levels(PDL1median$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+PDL1median$Treatment<-fct_relevel(PDL1median$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/PDL1ImedFI.png")
+ggplot(PDL1median[!PDL1median$Transfection == "NA",], aes(Transfection, colour = Treatment, log(MedFI))) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Median Fluorescence Intensity YG_586/15 (PD-L1, log scale)")+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+cyto_plot(gs, parent = "Live cells",
+channels = c("YG_586/15-A"),
+density_fill_alpha=0.5,
+density_stack = TRUE)
+getwd()
+write.table(Livecellfreqs, "../Livecellfreqs.csv". sep = ",")
+write.table(Livecellfreqs, "../Livecellfreqs.csv", sep = ",")
+read.csv("Livecellfreqs.csv")
+read.csv("../Livecellfreqs.csv")
+Livecellfreqs<-read.csv("../Livecellfreqs.csv")
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, Livecellfreqs[!Livecellfreqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+Livecellfreqs$Transfection<-as.factor(Livecellfreqs$Transfection)
+levels<-levels(Livecellfreqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+Livecellfreqs$Transfection<-fct_relevel(Livecellfreqs$Transfection, relevel)
+Livecellfreqs$Transfection
+Livecellfreqs$Treatment<-as.factor(Livecellfreqs$Treatment)
+levels<-levels(Livecellfreqs$Treatment)
+levels
+relevel<-levels[c(3,1,2)]
+relevel
+Livecellfreqs$Treatment<-fct_relevel(Livecellfreqs$Treatment, relevel)
+Transfections<-levels(as.factor(cyto_details(gs)$Transfection))
+Transfections
+my_comparisons<-list(c(Transfections[5], Transfections[1]),
+c(Transfections[5], Transfections[3]),c(Transfections[5], Transfections[4]),
+c(Transfections[5], Transfections[6]))
+ggplot(Livecellfreqs[!Livecellfreqs$Transfection == "NA",], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency Live cells")+
+scale_y_continuous(limits =c(0,100))+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+ggplot(Livecellfreqs[!Livecellfreqs$Transfection == "NA" & !is.na(Livecellfreqs$Transfection),], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency Live cells")+
+scale_y_continuous(limits =c(0,100))+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+Livecellfreqs$Treatment<-as.factor(Livecellfreqs$Treatment)
+levels<-levels(Livecellfreqs$Treatment)
+levels
+Livecellfreqs$Treatment
+relevel<-levels[c(3,1,2)]
+relevel<-levels[c(3,2,1)]
+relevel
+Livecellfreqs$Treatment<-fct_relevel(Livecellfreqs$Treatment, relevel)
+Transfections<-levels(as.factor(cyto_details(gs)$Transfection))
+Transfections
+my_comparisons<-list(c(Transfections[5], Transfections[1]),
+c(Transfections[5], Transfections[3]),c(Transfections[5], Transfections[4]),
+c(Transfections[5], Transfections[6]))
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/Livecellfreqs.png")
+ggplot(Livecellfreqs[!Livecellfreqs$Transfection == "NA" & !is.na(Livecellfreqs$Transfection),], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency Live cells")+
+scale_y_continuous(limits =c(0,100))+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+Livecellfreqs<-cyto_stats_compute(gs, channels = c("R_780/60-A"),
+stat = c("freq"),
+alias = "Live cells", parent = "Single Cells")
+write.table(Livecellfreqs, "../Livecellfreqs.csv", sep = ",")
+Livecellfreqs<-read.csv("../Livecellfreqs.csv")
+library(tidyverse)
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, Livecellfreqs[!Livecellfreqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+Livecellfreqs$Transfection<-as.factor(Livecellfreqs$Transfection)
+levels<-levels(Livecellfreqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+Livecellfreqs$Transfection<-fct_relevel(Livecellfreqs$Transfection, relevel)
+Livecellfreqs$Transfection
+Livecellfreqs$Treatment<-as.factor(Livecellfreqs$Treatment)
+levels<-levels(Livecellfreqs$Treatment)
+levels
+relevel<-levels[c(3,2,1)]
+relevel
+Livecellfreqs$Treatment<-fct_relevel(Livecellfreqs$Treatment, relevel)
+Transfections<-levels(as.factor(cyto_details(gs)$Transfection))
+Transfections
+my_comparisons<-list(c(Transfections[5], Transfections[1]),
+c(Transfections[5], Transfections[3]),c(Transfections[5], Transfections[4]),
+c(Transfections[5], Transfections[6]))
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/Livecellfreqs.png")
+ggplot(Livecellfreqs[!Livecellfreqs$Transfection == "NA" & !is.na(Livecellfreqs$Transfection),], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency Live cells")+
+scale_y_continuous(limits =c(0,100))+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+##extract more FMOS
+Unst<-cyto_extract(gs, parent = "Single Cells")[28]
+PDL1FMO<-cyto_extract(gs, parent = "Single Cells")[27]
+MHCFMO<-cyto_extract(gs, parent = "Single Cells")[26]
+##list the names of the samples
+##plot gate for MHC positive cells
+cyto_gate_edit(gs, parent = "Live cells",
+alias = c("MHC+", "MHC-"),
+channels = c("B_530/30-A"),
+overlay = c(MHCFMO),
+density_fill_alpha=0.5,
+type = c("interval", "interval"))
+MHCfreqs<-cyto_stats_compute(gs, channels = c("B_530/30-A"),
+stat = c("freq", "median"),
+alias = "MHC+", parent = "Live cells")
+library(tidyverse)
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, MHCfreqs[!MHCfreqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+MHCfreqs$Transfection<-as.factor(MHCfreqs$Transfection)
+levels<-levels(MHCfreqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+MHCfreqs$Transfection<-fct_relevel(MHCfreqs$Transfection, relevel)
+MHCfreqs$Transfection
+MHCfreqs$Treatment<-as.factor(MHCfreqs$Treatment)
+levels<-levels(MHCfreqs$Treatment)
+levels
+relevel<-levels[c(3,2,1)]
+relevel
+MHCfreqs$Treatment<-fct_relevel(MHCfreqs$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/MHCcellfreqs.png")
+ggplot(MHCfreqs[!MHCfreqs$Transfection == "NA",], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency MHC+ cells")+
+scale_y_continuous(limits =c(0,100))+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+MHCmedian<-cyto_stats_compute(gs, channels = c("B_530/30-A"), alias = "Live cells",
+stat = c("median"), parent = "Live cells")
+##stats test- does the treatment or Transfection transfected affect median fluoresence intensity
+aov<-aov(MedFI ~ Transfection*Treatment, MHCmedian[!MHCmedian$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+MHCmedian$Transfection<-as.factor(MHCmedian$Transfection)
+levels<-levels(MHCmedian$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+MHCmedian$Transfection<-fct_relevel(MHCmedian$Transfection, relevel)
+MHCmedian$Transfection
+MHCmedian$Treatment<-as.factor(MHCmedian$Treatment)
+levels<-levels(MHCmedian$Treatment)
+levels
+relevel<-levels[c(3,2,1)]
+relevel
+MHCmedian$Treatment<-fct_relevel(MHCmedian$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/MHCImedFI.png")
+ggplot(MHCmedian[!MHCmedian$Transfection == "NA",], aes(Transfection, colour = Treatment, MedFI)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Median Fluorescence Intensity B_530/30 (MHC-I)")+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+###PDL1 stuff
+cyto_gate_edit(gs, parent = "Live cells",
+alias = c("PD-L1+", "PD-L1-"),
+channels = c("YG_586/15-A"),
+overlay = c(PDL1FMO),
+density_fill_alpha=0.5,
+type = c("interval", "interval"))
+PDL1freqs<-cyto_stats_compute(gs, channels = c("YG_586/15-A"),
+stat = c("freq", "median"),
+alias = "PD-L1+", parent = "Live cells")
+##stats test- does the treatment or Transfection transfected affect cell viability
+aov<-aov(Frequency ~ Transfection*Treatment, PDL1freqs[!PDL1freqs$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+PDL1freqs$Transfection<-as.factor(PDL1freqs$Transfection)
+levels<-levels(PDL1freqs$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+PDL1freqs$Transfection<-fct_relevel(PDL1freqs$Transfection, relevel)
+PDL1freqs$Transfection
+PDL1freqs$Treatment<-as.factor(PDL1freqs$Treatment)
+levels<-levels(PDL1freqs$Treatment)
+levels
+relevel<-levels[c(3,2,1)]
+relevel
+PDL1freqs$Treatment<-fct_relevel(PDL1freqs$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/PDL1cellfreqs.png")
+ggplot(PDL1freqs[!PDL1freqs$Transfection == "NA",], aes(Transfection, colour = Treatment, Frequency)) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Frequency PDL1+ cells")+
+#scale_y_continuous(limits =c(0,100))+
+stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
+PDL1median<-cyto_stats_compute(gs, channels = c("YG_586/15-A"), alias = "Live cells",
+stat = c("median"))
+PDL1median
+##stats test- does the treatment or Transfection transfected affect median fluoresence intensity
+aov<-aov(MedFI ~ Transfection*Treatment, PDL1median[!PDL1median$Transfection == "NA",])
+summary(aov)
+tukey<-TukeyHSD(aov)
+tukey[[1]]
+tukey[[2]]
+tukey[[3]]
+library(forcats)
+##relevel treatment and Transfection factors to make ggplot look nice
+PDL1median$Transfection<-as.factor(PDL1median$Transfection)
+levels<-levels(PDL1median$Transfection)
+levels
+relevel<-levels[c(2,3,6,1,4,5)]
+relevel
+PDL1median$Transfection<-fct_relevel(PDL1median$Transfection, relevel)
+PDL1median$Transfection
+PDL1median$Treatment<-as.factor(PDL1median$Treatment)
+levels<-levels(PDL1median$Treatment)
+levels
+relevel<-levels[c(3,2,1)]
+relevel
+PDL1median$Treatment<-fct_relevel(PDL1median$Treatment, relevel)
+##Plot Live cell frequency graph (png saves to a file, dev.off tells R to stop plotting in a file)
+png("../figs/PDL1ImedFI.png")
+ggplot(PDL1median[!PDL1median$Transfection == "NA",], aes(Transfection, colour = Treatment, log(MedFI))) +
+geom_boxplot() + geom_point(aes(group = Treatment),  position = position_jitterdodge(jitter.width = .1, dodge.width = 1))+
+ylab("Median Fluorescence Intensity YG_586/15 (PD-L1, log scale)")+ stat_compare_means(method = "wilcox.test",comparisons = my_comparisons)
+dev.off()
